@@ -1,30 +1,30 @@
-spring:
-  application:
-    name: admin-service
-
-server:
-  port: 8081
-
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-    # can set registry fetch true by default
     register-with-eureka: true
     fetch-registry: true
 
+server:
+  port: 8081
+
+spring:
+  application:
+    name: admin-service
+
   datasource:
-    url: jdbc:h2:mem:administratorDB;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/administratorDB?useSSL=false&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
 
 # Optional: H2 console
 management:

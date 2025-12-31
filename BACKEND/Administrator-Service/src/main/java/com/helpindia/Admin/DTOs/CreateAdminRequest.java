@@ -1,52 +1,24 @@
-package com.helpindia.Admin.model;
+package com.helpindia.Admin.DTOs;
 
-import java.io.Serializable;
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-
-@Entity
-@Table(name = "administrators", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "username"),
-        @UniqueConstraint(columnNames = "mobile_number")
-})
-public class Administrator {
-
-    @Id
+public class CreateAdminRequest
+{
     @Email
-    @Column(name = "email", nullable = false, length = 254)
+    @NotBlank
     private String email;
 
-    @NotBlank
-    @Column(name = "username", nullable = false, length = 50, unique = true)
+    @NotBlank @Size(min = 3)
     private String username;
 
-    @Column(name = "first_name", length = 100)
     private String firstName;
-
-    @Column(name = "last_name", length = 100)
     private String lastName;
-
-    @Column(name = "mobile_number", length = 20)
     private String mobileNumber;
 
-    @NotBlank
-    @Column(name = "password", nullable = false)
+    @NotBlank @Size(min = 6)
     private String password;
-
-    public Administrator() {}
-
-    public Administrator(String email, String username, String firstName, String lastName, String mobileNumber, String password)
-    {
-        this.email = email;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.mobileNumber = mobileNumber;
-        this.password = password;
-    }
 
     public String getEmail() {
         return email;
@@ -94,9 +66,5 @@ public class Administrator {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getFullName() {
-        return (firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName).trim();
     }
 }

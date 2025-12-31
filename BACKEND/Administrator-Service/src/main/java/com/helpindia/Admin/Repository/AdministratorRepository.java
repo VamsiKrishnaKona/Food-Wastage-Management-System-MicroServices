@@ -7,6 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AdministratorRepository extends JpaRepository<Administrator, String> {
-    Optional<Administrator> findByEmail(String email);
+public interface AdministratorRepository extends JpaRepository<Administrator, String>
+{
+    Optional<Administrator> findByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByMobileNumber(String mobileNumber);
+
+    // find by either email or username (helper)
+    Optional<Administrator> findByEmailIgnoreCase(String email);
 }
