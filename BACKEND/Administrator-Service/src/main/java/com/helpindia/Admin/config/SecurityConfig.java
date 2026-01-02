@@ -1,16 +1,15 @@
 package com.helpindia.Admin.config;
 
-import jakarta.ws.rs.HttpMethod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,18 +29,21 @@ public class SecurityConfig
         return new BCryptPasswordEncoder(10);
     }
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         return http
                 // Disable CSRF for REST APIs
                 .csrf(AbstractHttpConfigurer::disable)
-
+                //.csrf(customizer -> customizer.ignoringRequestMatchers("/h2-console/**"))
+                .headers(frames -> frames.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/admins/registration",
-                                "/api/admins/login"
+                                "/api/admins/login",
+                                "/h2-console/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -60,8 +62,9 @@ public class SecurityConfig
     @Bean
     public AuthenticationProvider authenticationProvider()
     {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(userDetailsService);
         return provider;
     }
 }
