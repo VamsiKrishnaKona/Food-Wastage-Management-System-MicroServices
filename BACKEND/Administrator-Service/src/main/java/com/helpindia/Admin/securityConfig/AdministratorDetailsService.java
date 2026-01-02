@@ -1,4 +1,4 @@
-package com.helpindia.Admin.config;
+package com.helpindia.Admin.securityConfig;
 
 import com.helpindia.Admin.Repository.AdministratorRepository;
 import com.helpindia.Admin.model.Administrator;

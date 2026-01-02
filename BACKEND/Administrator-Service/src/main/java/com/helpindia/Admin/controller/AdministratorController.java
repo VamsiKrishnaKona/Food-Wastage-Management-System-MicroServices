@@ -4,14 +4,17 @@ import com.helpindia.Admin.DTOs.AdminResponse;
 import com.helpindia.Admin.DTOs.CreateAdminRequest;
 import com.helpindia.Admin.DTOs.LoginRequest;
 import com.helpindia.Admin.DTOs.UpdateAdminRequest;
+import com.helpindia.Admin.JWT.JWTService;
 import com.helpindia.Admin.model.Administrator;
 import com.helpindia.Admin.service.AdministratorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,9 @@ public class AdministratorController
 {
 
     private final AdministratorService service;
+
+    @Autowired
+    private JWTService jwtService;
 
     public AdministratorController(AdministratorService service)
     {
@@ -83,12 +89,17 @@ public class AdministratorController
 
     // Login - accepts identifier (email or username) + password
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginReq) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginReq)
+    {
         Optional<Administrator> opt = service.login(loginReq.getIdentifier(), loginReq.getPassword());
-        if (opt.isPresent()) {
-            // For now return admin details (without password). You may later return JWT.
-            return ResponseEntity.ok(toResponse(opt.get()));
-        } else {
+        if (opt.isPresent())
+        {
+            //return ResponseEntity.ok(toResponse(opt.get()));
+            String token = jwtService.generateToken(loginReq.getIdentifier());
+            return ResponseEntity.ok(Map.of("token", token, "type", "Bearer"));
+        }
+
+        else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }

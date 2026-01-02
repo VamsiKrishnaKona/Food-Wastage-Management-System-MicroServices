@@ -74,7 +74,8 @@ public class AdministratorServiceImpl implements AdministratorService
     }
 
     @Override
-    public Optional<Administrator> login(String identifier, String rawPassword) {
+    public Optional<Administrator> login(String identifier, String rawPassword)
+    {
         Optional<Administrator> byEmail = repository.findById(identifier);
         Optional<Administrator> byUsername = repository.findByUsername(identifier);
 
