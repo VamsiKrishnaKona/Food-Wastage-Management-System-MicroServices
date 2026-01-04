@@ -27,6 +27,18 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter
     ApplicationContext context;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException
+    {
+        String path = request.getServletPath();
+        return path.startsWith("/auth/")
+                || path.startsWith("/auth/refresh")
+                || path.startsWith("/auth/logout")
+                || path.startsWith("/api/admins/login")
+                || path.startsWith("/api/admins/registration")
+                || path.startsWith("/h2-console");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -55,9 +67,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            } catch (InvalidTokenException e)
+            } catch (Exception e)
             {
-                throw new RuntimeException(e);
+                SecurityContextHolder.clearContext();
             }
         }
 

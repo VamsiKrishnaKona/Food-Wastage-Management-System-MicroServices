@@ -47,15 +47,19 @@ public class SecurityConfig
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/auth/**",
+                                "/auth/refresh",
+                                "/auth/logout",
                                 "/api/admins/registration",
                                 "/api/admins/login",
                                 "/h2-console/**"
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
 
                 // Username + Password authentication
-                .httpBasic(Customizer.withDefaults())
+                //.httpBasic(Customizer.withDefaults())
 
                 // Stateless (recommended for APIs)
                 .sessionManagement(session ->

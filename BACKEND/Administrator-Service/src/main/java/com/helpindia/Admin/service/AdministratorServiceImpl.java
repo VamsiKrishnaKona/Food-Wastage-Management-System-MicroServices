@@ -83,7 +83,8 @@ public class AdministratorServiceImpl implements AdministratorService
 
         if (possible.isPresent()) {
             Administrator admin = possible.get();
-            if (passwordEncoder.matches(rawPassword, admin.getPassword())) {
+            if (passwordEncoder.matches(rawPassword, admin.getPassword()))
+            {
                 return Optional.of(admin);
             }
         }

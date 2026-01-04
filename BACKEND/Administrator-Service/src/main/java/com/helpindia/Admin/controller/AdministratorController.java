@@ -1,12 +1,10 @@
 package com.helpindia.Admin.controller;
 
-import com.helpindia.Admin.DTOs.AdminResponse;
-import com.helpindia.Admin.DTOs.CreateAdminRequest;
-import com.helpindia.Admin.DTOs.LoginRequest;
-import com.helpindia.Admin.DTOs.UpdateAdminRequest;
+import com.helpindia.Admin.DTOs.*;
 import com.helpindia.Admin.JWT.JWTService;
 import com.helpindia.Admin.model.Administrator;
 import com.helpindia.Admin.service.AdministratorService;
+import com.helpindia.Admin.service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,13 +21,15 @@ public class AdministratorController
 {
 
     private final AdministratorService service;
+    private final RefreshTokenService refreshTokenService;
 
     @Autowired
     private JWTService jwtService;
 
-    public AdministratorController(AdministratorService service)
+    public AdministratorController(AdministratorService service, RefreshTokenService refreshTokenService)
     {
         this.service = service;
+        this.refreshTokenService = refreshTokenService;
     }
 
     // Create
@@ -47,6 +46,28 @@ public class AdministratorController
 
         Administrator saved = service.createAdmin(adm);
         return new ResponseEntity<>(toResponse(saved), HttpStatus.CREATED);
+    }
+
+    // Login - accepts identifier (email or username) + password
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginReq)
+    {
+        Optional<Administrator> opt = service.login(loginReq.getIdentifier(), loginReq.getPassword());
+        if (opt.isPresent())
+        {
+            //return ResponseEntity.ok(toResponse(opt.get()));
+
+            String token = jwtService.generateToken(loginReq.getIdentifier());
+            String refreshToken = jwtService.generateRefreshToken(loginReq.getIdentifier());
+
+            refreshTokenService.create(loginReq.getIdentifier(), refreshToken);
+
+            return ResponseEntity.ok(new AuthResponse(token, refreshToken, "Bearer"));
+        }
+
+        else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
     }
 
     // Read all
@@ -82,27 +103,13 @@ public class AdministratorController
 
     // Delete
     @DeleteMapping("/{email}")
-    public ResponseEntity<Void> delete(@PathVariable String email) {
+    public ResponseEntity<Void> delete(@PathVariable String email)
+    {
         service.deleteAdmin(email);
         return ResponseEntity.noContent().build();
     }
 
-    // Login - accepts identifier (email or username) + password
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginReq)
-    {
-        Optional<Administrator> opt = service.login(loginReq.getIdentifier(), loginReq.getPassword());
-        if (opt.isPresent())
-        {
-            //return ResponseEntity.ok(toResponse(opt.get()));
-            String token = jwtService.generateToken(loginReq.getIdentifier());
-            return ResponseEntity.ok(Map.of("token", token, "type", "Bearer"));
-        }
 
-        else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
-    }
 
     private AdminResponse toResponse(Administrator a) {
         AdminResponse r = new AdminResponse();

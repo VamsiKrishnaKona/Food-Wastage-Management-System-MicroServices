@@ -5,35 +5,19 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 
 @Service
 public class JWTService
 {
+    @Value("${jwt.secret}")
     private String secretKey = "";
 
-    private static final long expirationInterval = 1000 * 60 * 60;
-
-    public JWTService()
-    {
-        try
-        {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey secKey = keyGenerator.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(secKey.getEncoded());
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
+    private static final long expirationInterval = 1000 * 60 * 5;
 
     private SecretKey getSigninKey()
     {
@@ -47,6 +31,16 @@ public class JWTService
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationInterval))
+                .signWith(getSigninKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username)
+    {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 7)))
                 .signWith(getSigninKey(), Jwts.SIG.HS256)
                 .compact();
     }
