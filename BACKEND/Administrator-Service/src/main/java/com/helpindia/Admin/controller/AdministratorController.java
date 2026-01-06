@@ -8,6 +8,7 @@ import com.helpindia.Admin.service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -57,32 +58,17 @@ public class AdministratorController
         {
             //return ResponseEntity.ok(toResponse(opt.get()));
 
-            String token = jwtService.generateToken(loginReq.getIdentifier());
-            String refreshToken = jwtService.generateRefreshToken(loginReq.getIdentifier());
+            String token = jwtService.generateToken(opt.get().getEmail());
+            String refreshToken = jwtService.generateRefreshToken(opt.get().getEmail());
 
-            refreshTokenService.create(loginReq.getIdentifier(), refreshToken);
+            refreshTokenService.create(opt.get().getEmail(), refreshToken);
 
             return ResponseEntity.ok(new AuthResponse(token, refreshToken, "Bearer"));
         }
-
-        else {
+        else
+        {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
-    }
-
-    // Read all
-    @GetMapping
-    public List<AdminResponse> getAll() {
-        return service.getAllAdmins().stream().map(this::toResponse).collect(Collectors.toList());
-    }
-
-    // Read by email
-    @GetMapping("/{email}")
-    public ResponseEntity<AdminResponse> getByEmail(@PathVariable String email)
-    {
-        Optional<Administrator> opt = service.getAdminByEmail(email);
-        return opt.map(a -> ResponseEntity.ok(toResponse(a)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Update
@@ -100,6 +86,47 @@ public class AdministratorController
         Administrator saved = service.updateAdmin(email, upd);
         return ResponseEntity.ok(toResponse(saved));
     }
+
+    //Change password
+    @PostMapping("change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request)
+    {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        service.changePassword(email, request.oldPassword(), request.newPassword());
+
+        return ResponseEntity.ok("Password Changed successfully!!!");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request)
+    {
+        service.createResetToken(request.email());
+        return ResponseEntity.ok("if Email Exists, reset link send to Email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request)
+    {
+        service.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok("Password changed Successfully");
+    }
+
+    // Read all
+    @GetMapping
+    public List<AdminResponse> getAll() {
+        return service.getAllAdmins().stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    // Read by email
+    @GetMapping("/{email}")
+    public ResponseEntity<AdminResponse> getByEmail(@PathVariable String email)
+    {
+        Optional<Administrator> opt = service.getAdminByEmail(email);
+        return opt.map(a -> ResponseEntity.ok(toResponse(a)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
     // Delete
     @DeleteMapping("/{email}")

@@ -52,6 +52,8 @@ public class SecurityConfig
                                 "/auth/logout",
                                 "/api/admins/registration",
                                 "/api/admins/login",
+                                "/api/admins/forgot-password",
+                                "/api/admins/reset-password",
                                 "/h2-console/**"
 
                         ).permitAll()

@@ -5,7 +5,8 @@ import com.helpindia.Admin.model.Administrator;
 import java.util.List;
 import java.util.Optional;
 
-public interface AdministratorService {
+public interface AdministratorService
+{
 
     Administrator createAdmin(Administrator admin);
     Administrator updateAdmin(String email, Administrator updated);
@@ -19,4 +20,8 @@ public interface AdministratorService {
      * Returns the Administrator if authentication succeeds, otherwise empty.
      */
     Optional<Administrator> login(String identifier, String rawPassword);
+
+    void changePassword(String email, String oldPassword, String newPassword);
+    void createResetToken(String email);
+    void resetPassword(String token, String newPassword);
 }
